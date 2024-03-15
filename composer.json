@@ -1,0 +1,25 @@
+{
+    "name": "loadxes/limitter",
+    "version": "0.0.1-beta",
+    "description": "PHP削峰限流库",
+    "type": "library",
+    "homepage": "https://github.com/loadxes/limite-rate",
+    "license": "MIT",
+    "autoload": {
+		"psr-4": {
+			"Loadxes\\Limitter\\": "src/"
+		}
+	},
+    "authors": [
+        {
+            "name": "loadxes",
+            "email": "vvvipdarlin@google.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.0",
+        "ext-redis": "*"
+    }
+}
