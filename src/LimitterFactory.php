@@ -9,7 +9,7 @@ class LimitterFactory {
 
         switch ($method) {
             case 'time_window':
-
+                $limitter = new TimeWindowLimitter();
                 break;
             case 'token_bucket':
 
