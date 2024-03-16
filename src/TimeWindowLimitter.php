@@ -60,6 +60,9 @@ class TimeWindowLimitter implements LimitterInterface
 
         // 3. 比较总请求数是否超过了limit, 如果超过了limit, 丢弃请求
         $cache = CacheFactory::createCache($cacheType, $driver, $handler);
+
+        $cache->set('aaa', 'sdfs');
+
         return $cache->evalMget($luaScript, $windowsKeys, $limit, $currentKey, $second);
     }
 }
