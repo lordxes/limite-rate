@@ -7,20 +7,32 @@ class FileStorage implements StorageInterface
 
     /**
      * 移动时间窗格限流核心实现
-     * @param int $limit  限制次数
-     * @param int $second  时间窗格
-     * @param string $key  /
-     * @param void $handler  处理器
+     * @param int $limit 限制次数
+     * @param int $second 时间窗格
+     * @param string $key /
+     * @param void $handler 处理器
      * @return bool
      * @throws \Exception
      */
     public static function setTimeWindowLimit(int $limit, int $second, string $key, $handler): bool
     {
+        // 创建目录
+        $directory = "./limit_log/";
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true); // 在此创建目录
+        }
+
+        $filename = './limit_log/' . $key . '.txt';
+        $fh = fopen($filename, 'a+');
+        if ($fh === false) {
+            throw new \Exception('无法打开文件句柄');
+        }
+
         // 独占锁
         $locker = new LockTool();
         try {
-            $lock = $locker->getLock($handler);
-            if ($lock === false){
+            $lock = $locker->getLock($fh);
+            if ($lock === false) {
                 return false;  // 未获取到文件锁
             }
 
@@ -31,19 +43,19 @@ class FileStorage implements StorageInterface
             $linesKeeper = [];  // 需要保留下来的有效行;
 
             // 2. 获取seconds内的总请求数
-            for ($i = $limit; $i >= 0; $i--) {
+            for ($i = $second; $i >= 0; $i--) {
                 $t = strtotime("-$i second", $currentTime);
                 $windowsKeys[] = $t;
             }
 
             // 3. 读取控制文件
-            while (!feof($handler)) {
-                $line = fgets($handler);
+            while (!feof($fh)) {
+                $line = fgets($fh);
                 if ($line) {
                     // 解析行数据  [timestamp]  [usedLimit]
                     $limitMsg = explode("  ", $line);
                     if (count($limitMsg) == 2 && in_array($limitMsg[0], $windowsKeys)) {
-                        $usedLimit += $limitMsg[1];
+                        $usedLimit += str_replace("\n", "", $limitMsg[1]);
                         $linesKeeper[] = $limitMsg; // 需要保留下来的行;
                     }
                 }
@@ -55,28 +67,29 @@ class FileStorage implements StorageInterface
             }
 
             // 4. 重写文件
-            fseek($handler, 0);
-            ftruncate($handler, 0);
+            fseek($fh, 0);
+            ftruncate($fh, 0);
             $isAppend = 1; // 是否需要追加当前时间
             foreach ($linesKeeper as $lineArr) {
                 if ($lineArr[0] == $currentTime) {
-                    $lineArr[1] += 1;
+                    $singleLimitNum = str_replace("\n", "", $lineArr[1]);
+                    $lineArr[1] = $singleLimitNum + 1;
                     $isAppend = 0;  // 不需要追加行
                 }
-                fwrite($handler, implode("  ", $lineArr));
+                fwrite($fh, implode("  ", $lineArr) . "\n");
             }
 
             // 追加当前时间
             if ($isAppend == 1) {
-                fwrite($handler, $currentTime . "  1");
+                fwrite($fh, $currentTime . "  1" . "\n");
             }
         } finally {
             // 是否文件锁
-            $locker->releaseLock($handler);
+            $locker->releaseLock($fh);
             // 关闭句柄
-            fclose($handler);
+            fclose($fh);
             // 释放内存
-            $handler = null;
+            $fh = null;
         }
 
         return true;

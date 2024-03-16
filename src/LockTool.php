@@ -17,7 +17,7 @@ class LockTool
 
         // 无法获取文件句柄
         if ($handler === false) {
-            return throw new Exception('error: can not get lock file handler');
+            throw new Exception('error: can not get lock file handler');
         }
 
         while (!flock($handler, LOCK_EX | LOCK_NB)) {

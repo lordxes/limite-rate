@@ -4,6 +4,14 @@ namespace Loadxes\Limitter;
 
 class RedisStorage implements StorageInterface
 {
+    /**
+     * 滑动时间窗格Redis驱动实现
+     * @param int $limit 限制事件数
+     * @param int $second  时间窗格长度
+     * @param string $key  颗粒度key
+     * @param void $handler  处理器
+     * @return mixed
+     */
     public static function setTimeWindowLimit(int $limit, int $second, string $key, $handler)
     {
         // 1. 获取当前时间戳
@@ -12,7 +20,7 @@ class RedisStorage implements StorageInterface
         $currentKey = $currentTime . "_" . $key;
 
         // 2. 获取seconds内的总请求数
-        for ($i = $limit; $i >= 0; $i--) {
+        for ($i = $second; $i >= 0; $i--) {
             $t = strtotime("-$i second", $currentTime);
             $windowsKeys[] = $t . "_" . $key;
         }
@@ -23,13 +31,12 @@ class RedisStorage implements StorageInterface
             local limitNum = tonumber(ARGV[1])
             local currentKey = ARGV[2]
             local expireSeconds = tonumber(ARGV[3])
-
             local value = redis.call('MGET', unpack(key))
             local usedLimit = 0
 
-            for i = 1, #value do
-                if value[i] then
-                    usedLimit = usedLimit + tonumber(value[i])
+            for k, v in pairs(value) do
+                if v then
+                    usedLimit = usedLimit + tonumber(v)
                 end
             end
 
@@ -41,7 +48,7 @@ class RedisStorage implements StorageInterface
                     redis.call('INCRBY', currentKey, 1)
                 end
 
-                return 1
+                return 2
             else
                 return 0
             end
