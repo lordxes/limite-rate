@@ -7,7 +7,7 @@ use RedisException;
 /**
  * 时间窗格限制器
  */
-class TimeWindowLimitter implements LimitterInterface
+class TimeWindowLimitter
 {
 
     /**
@@ -41,7 +41,7 @@ class TimeWindowLimitter implements LimitterInterface
 
         // Lua脚本异常
         if ($ret === false) {
-            throw new RedisException("error: Lua execute fail, Internal Error Occur!");
+            throw new RedisException("error: Internal Error Occur!");
         }
 
         // 未超出流量允许放行

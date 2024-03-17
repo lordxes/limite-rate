@@ -23,5 +23,5 @@ interface StorageInterface
      * @param void $handler 存储器
      * @return mixed
      */
-    public function setTokenBucketLimit(int $cap, int $rate, string $key, $handler);
+    public static function setTokenBucketLimit(int $cap, int $rate, string $key, $handler);
 }

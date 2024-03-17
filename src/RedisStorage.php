@@ -65,7 +65,7 @@ LUA;
      * @param void $handler 存储器
      * @return mixed
      */
-    public function setTokenBucketLimit(int $cap, int $rate, string $key, $handler)
+    public static function setTokenBucketLimit(int $cap, int $rate, string $key, $handler)
     {
         // 返回>10表示执行redis操作系统异常
         $luaScript = <<<LUA
