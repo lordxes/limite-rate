@@ -57,7 +57,73 @@ LUA;
         return $handler->eval($luaScript, [...$windowsKeys, $limit, $currentKey, $second], count($windowsKeys));
     }
 
-    public function setTokenBucketLimit()
+    /**
+     * 令牌桶Redis实现
+     * @param int $cap 令牌桶的容量
+     * @param int $rate 令牌桶的速率
+     * @param string $key 限制事件的颗粒度
+     * @param void $handler 存储器
+     * @return mixed
+     */
+    public function setTokenBucketLimit(int $cap, int $rate, string $key, $handler)
     {
+        // 返回>10表示执行redis操作系统异常
+        $luaScript = <<<LUA
+            local keys = KEYS
+            local bucketKey = KEYS[1]
+            local cap = tonumber(ARGV[1])
+            local rate = tonumber(ARGV[2])
+            local token = 0
+            local lastTime = os.time()
+            local currentTime = os.time()
+            
+            // 设置容量-最后获取token的时间戳, 减少IO次数
+            local bucketSetRet = redis.call('SETNX', bucketKey, cap .. "-" .. currentTime)
+            if bucketSetRet == nil then
+                return 11
+            end
+            
+            // 如果key存在, 则重新获取token 和 lastTime
+            if bucketSetRet == 0 then
+                local bucketRet = redis.call('GET', bucketKey)
+                if bucketCapRet == nil then
+                    return 14
+                end
+                
+                local temp = {}
+                // 将获取结果拆分
+                for item in string.gmatch(bucketRet, "[^-]+") do
+                    table.insert(temp, item)
+                end
+                
+                token = temp[1]
+                lastTime = temp[2]
+            end
+            
+            // 计算桶内剩余令牌数
+            local elapsedTime = 0
+            local tokenNeedToAdd = 0
+            elapsedTime = currentTime - tonumber(lastTime)
+            tokenNeedToAdd = elapsedTime * rate
+            
+            // 剩余的token数
+            token = math.min(cap, token + tokenNeedToAdd)
+            
+            // 没有令牌, 返回0
+            local leftToken = token - 1
+            if leftToken < 0 then
+                return 0
+            end
+            
+            // 还有令牌将剩余令牌更新到bucketKey中
+            local updateTokenRet = redis.call('SET', bucketKey, leftToken .. '-' .. currentTime)
+            if updateTokenRet == nil then
+                return 15
+            end
+            
+            // 通过
+            return 2
+LUA;
+        return $handler->eval($luaScript, [$key . '_bucket', $key . '_bucket_last_time', $cap, $rate], 2);
     }
 }

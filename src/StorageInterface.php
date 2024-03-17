@@ -17,7 +17,11 @@ interface StorageInterface
 
     /**
      * 设置令牌桶的核心接口
+     * @param int $cap  令牌桶的容量
+     * @param int $rate  令牌桶的速率
+     * @param string $key  限制事件的颗粒度
+     * @param void $handler 存储器
      * @return mixed
      */
-    public function setTokenBucketLimit();
+    public function setTokenBucketLimit(int $cap, int $rate, string $key, $handler);
 }

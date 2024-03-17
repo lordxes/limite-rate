@@ -95,7 +95,12 @@ class FileStorage implements StorageInterface
         return true;
     }
 
-    public function setTokenBucketLimit()
+    /**
+     * 令牌桶核心功能代码File驱动实现
+     * @return void
+     */
+    public function setTokenBucketLimit(int $cap, int $rate, string $key, $handler)
     {
+
     }
 }

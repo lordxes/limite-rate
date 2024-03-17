@@ -14,7 +14,7 @@ class TokenBucketLimitter implements LimitterInterface
      * @param string $key 限制颗粒度
      * @return void
      */
-    public function setLimit(int $limit, int $second, string $key): void
+    public function setLimit(int $limit, int $second, string $key, string $driver, $handler)
     {
 
     }
