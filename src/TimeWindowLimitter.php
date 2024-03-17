@@ -25,7 +25,7 @@ class TimeWindowLimitter
     {
         // 判断驱动是否支持
         if (!in_array($driver, ["redis", "file"])) {
-            return throw new \InvalidArgumentException("目前仅支持Redis和File作为限流驱动");
+            throw new \InvalidArgumentException("目前仅支持Redis和File作为限流驱动");
         }
 
         $ret = false;
@@ -39,17 +39,6 @@ class TimeWindowLimitter
                 break;
         }
 
-        // Lua脚本异常
-        if ($ret === false) {
-            throw new RedisException("error: Internal Error Occur!");
-        }
-
-        // 未超出流量允许放行
-        if ($ret === 1) {
-            return true;
-        }
-
-        // 超出流量
-        return false;
+        return $ret;
     }
 }
