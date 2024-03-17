@@ -13,7 +13,7 @@ class RedisStorage implements StorageInterface
      * @return bool
      * @throws \Exception
      */
-    public static function setTimeWindowLimit(int $limit, int $second, string $key, $handler): bool
+    public static function setTimeWindowLimit(int $limit, int $second, string $key, $handler):bool
     {
         // 1. 获取当前时间戳
         $currentTime = time();
@@ -35,24 +35,28 @@ class RedisStorage implements StorageInterface
             local value = redis.call('MGET', unpack(key))
             local usedLimit = 0
 
-            for k, v in pairs(value) do
-                if v then
-                    usedLimit = usedLimit + tonumber(v)
+            if value then
+                for k, v in pairs(value) do
+                    if v then
+                        usedLimit = usedLimit + tonumber(v)
+                    end
                 end
             end
 
+            local result = 0
             if usedLimit < limitNum then
                 local ret = redis.call('SETNX', currentKey, 1)
+
                 if ret == 1 then
-                    redis.call('EXPIRE', currentKey, expireSeconds * 1.5)
+                    redis.call('EXPIRE', currentKey, expireSeconds * 2)
                 else
                     redis.call('INCRBY', currentKey, 1)
                 end
 
-                return 2
-            else
-                return 0
+                result = 2
             end
+
+            return result
 LUA;
 
         $result = $handler->eval($luaScript, [...$windowsKeys, $limit, $currentKey, $second], count($windowsKeys));
