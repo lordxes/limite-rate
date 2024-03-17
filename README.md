@@ -6,6 +6,9 @@
 
 `composer require loadxes/limitter`
 
+## UML
+![img.png](assets/img.png)
+
 ## 业务类
 - 滑动时间窗口算法业务类: `Loadxes\Limitter\TimeWindowLimitter`
 - 令牌桶算法业务类: `Loadxes\Limitter\TokenBucketLimitter`
