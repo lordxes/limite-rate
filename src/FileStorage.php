@@ -33,12 +33,12 @@ class FileStorage implements StorageInterface
 
         // 独占锁
         $locker = new LockTool();
-        try {
-            $lock = $locker->getLock($fh);
-            if ($lock === false) {
-                return false;  // 未获取到文件锁
-            }
+        $lock = $locker->getLock($fh);
+        if ($lock === false) {
+            return false;  // 未获取到文件锁
+        }
 
+        try {
             // 获取到锁开始进行滑动窗格
             $currentTime = time();
             $windowsKeys = [];
