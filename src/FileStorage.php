@@ -117,11 +117,12 @@ class FileStorage implements StorageInterface
 
         // 独占锁
         $locker = new LockTool();
+        $lock = $locker->getLock($fh);
+        if ($lock === false) {
+            return false;  // 未获取到文件锁
+        }
+
         try {
-            $lock = $locker->getLock($fh);
-            if ($lock === false) {
-                return false;  // 未获取到文件锁
-            }
 
             // 获取到锁开始令牌桶操作
             $token = 0;
